@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Get Screen Details</title>
+  </head>
+  <body id="mybody">
+    <h1>Screen Details</h1>
+    <script>
+      let colors = ["red", "blue", "yellow", "black"];
+      function getDetails() {
+        return new Promise((resolve, reject) => {
+          if ("getScreenDetails" in window) {
+            window
+              .getScreenDetails()
+              .then((screenDetails) => {
+                console.log(screenDetails);
+                let body = document.getElementById("mybody");
+                screenDetails?.screens.map((screen, index) => {
+                  const newDiv = document.createElement("div");
+                  newDiv.style.backgroundColor = colors[index];
+                  newDiv.style.height = "100px";
+                  newDiv.style.position = "fixed";
+                  newDiv.style.width = "100px";
+                  newDiv.style.top = `${screen.availHeight / 2}px `;
+                  newDiv.style.left = `${
+                    screen.width / 2 + screen.availLeft
+                  }px`;
+                  console.log(newDiv);
+                  body.appendChild(newDiv);
+                });
+                resolve(screenDetails);
+              })
+              .catch((error) => {
+                reject(error);
+              });
+          } else {
+            reject(new Error("Window Management API is not supported"));
+          }
+        });
+      }
+    </script>
+    <button onclick="getDetails()">Get Details</button>
+  </body>
+</html>
