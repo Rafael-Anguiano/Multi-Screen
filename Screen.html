@@ -3,7 +3,7 @@
   <head>
     <title>Get Screen Details</title>
   </head>
-  <body id="mybody" style="max-width:100vw;max-height:100vh;background:white">
+  <body id="mybody" style="max-width:100vw;max-height:100vh;background:black">
     <div id="app"></div>
     <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
@@ -61,8 +61,8 @@
             width: 100 + number*20 + 'px',
             height:100 + number*20 + 'px',
             border:'2px dashed ' + colors[number],
-            top: (myHeight/2)-100-(number*10) + myTop + 'px',
-            left:(myWidth/2)-100-(number*10) + myLeft +'px'
+            top: (myHeight/2)-(100+(number*10)) + myTop + 'px',
+            left:(myWidth/2)-(100+(number*10)) + myLeft +'px'
           }}
         ></div>
       }
