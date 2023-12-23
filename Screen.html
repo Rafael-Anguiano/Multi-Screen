@@ -31,18 +31,18 @@
 
       let newDiv
       for(let i=0; i<10;i++){
-        if(!localStorage.getItem(identificator)) break;
-        if(i== identificator) continue;
+        if(!localStorage.getItem(i)) break;
+        if(i == identificator) continue;
         newDiv = document.createElement('div');
         newDiv.style.position = "fixed"
         newDiv.style.background = localStorage.getItem(`color-${i}`)
-        newDiv.style.top = (Number(localStorage.getItem(`height-${i}`))/2) -50 + Number(localStorage.getItem(`top-${i}`)) + 'px'
-        newDiv.style.left = (Number(localStorage.getItem(`width-${i}`))/2) -50 + Number(localStorage.getItem(`left-${i}`)) + 'px'
+        newDiv.style.top = (Number(localStorage.getItem(`height-${i}`))) + Number(localStorage.getItem(`top-${i}`)) + 'px'
+        newDiv.style.left = (Number(localStorage.getItem(`width-${i}`))) + Number(localStorage.getItem(`left-${i}`)) + 'px'
         newDiv.style.height = '100px'
         newDiv.style.width = '100px'
         body.appendChild(newDiv)
+        location.reload()
       }
-      // location.reload()
     </script>
   </body>
 </html>
