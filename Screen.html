@@ -3,46 +3,74 @@
   <head>
     <title>Get Screen Details</title>
   </head>
-  <body id="mybody" style="max-width:100vw;max-height:100vh;background:black">
-    <h1 style="color:white;">Screen Details</h1>
-    <button onclick="getDetails()" style="position:fixed;top:100px;left:15px;">Get Details</button>
-    <div id="square" style="width:100px;height:100px;position:fixed;border:2px dashed green;"></div>
-    <script>
-      function getDetails() {localStorage.clear()}
-      
+  <body id="mybody" style="max-width:100vw;max-height:100vh;background:white">
+    <div id="app"></div>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/jsx">
+      let colors = ["red", "blue", "green", "purple"];
+
       const queryString = window.location.search;
       const urlParams = new URLSearchParams(queryString);
-      const identificator = urlParams.get('screen');
-      
-      let colors = ["red", "blue", "green", "purple"];
-      let body = document.getElementById("mybody");
-      let square = document.getElementById("square");
+      let identificator = urlParams.get('screen');
 
-      square.style.background = colors[identificator]
-      square.style.top = window.innerHeight/2 - 50 + 'px'
-      square.style.left = window.outerWidth/2 - 50 + 'px'
+      if(!identificator){
+        for(let i = 0;i<4;i++){
+          if(!localStorage.getItem(i)){
+            location.replace(`file:///C:/Users/r-j-1/Repos/html-projects/Multi-Screen-html/Screen.html?screen=${i}`)
+            break;
+          }
+        }
+      }
+
       localStorage.setItem(identificator, identificator)
-      localStorage.setItem(`width-${identificator}`, (window.outerWidth/2)-50)
-      localStorage.setItem(`height-${identificator}`, (window.innerHeight/2)-50)
+      localStorage.setItem(`width-${identificator}`, window.outerWidth)
+      localStorage.setItem(`height-${identificator}`, window.innerHeight)
       localStorage.setItem(`color-${identificator}`, colors[identificator])
       localStorage.setItem(`top-${identificator}`, window.screenTop)
       localStorage.setItem(`left-${identificator}`, window.screenLeft)
       console.log(localStorage)
 
-      let newDiv
-      for(let i=0; i<10;i++){
-        if(!localStorage.getItem(i)) break;
-        if(i == identificator) continue;
-        newDiv = document.createElement('div');
-        newDiv.style.position = "fixed"
-        newDiv.style.background = localStorage.getItem(`color-${i}`)
-        newDiv.style.top = (Number(localStorage.getItem(`height-${i}`))) + Number(localStorage.getItem(`top-${i}`)) + 'px'
-        newDiv.style.left = (Number(localStorage.getItem(`width-${i}`))) + Number(localStorage.getItem(`left-${i}`)) + 'px'
-        newDiv.style.height = '100px'
-        newDiv.style.width = '100px'
-        body.appendChild(newDiv)
-        location.reload()
+      
+      window.onbeforeunload = function(){
+        localStorage.removeItem(identificator)
+        localStorage.removeItem(`width-${identificator}`)
+        localStorage.removeItem(`height-${identificator}`)
+        localStorage.removeItem(`color-${identificator}`)
+        localStorage.removeItem(`top-${identificator}`)
+        localStorage.removeItem(`left-${identificator}`)
+     }
+
+      function Square ({ number=0 }) {
+        React.useEffect(()=>{
+          myTop = Number(localStorage.getItem(`top-${number}`))
+          myLeft = Number(localStorage.getItem(`left-${number}`))
+          myHeight = Number(localStorage.getItem(`height-${number}`))
+          myWidth = Number(localStorage.getItem(`width-${number}`))  
+        },[localStorage])
+        let myTop = Number(localStorage.getItem(`top-${number}`))
+        let myLeft = Number(localStorage.getItem(`left-${number}`))
+        let myHeight = Number(localStorage.getItem(`height-${number}`))
+        let myWidth = Number(localStorage.getItem(`width-${number}`))
+        console.log(number, myTop, myLeft, myHeight, myWidth)
+        return <div id="square" 
+          style={{
+            position:'fixed',
+            background:'transparent',
+            width: 100 + number*20 + 'px',
+            height:100 + number*20 + 'px',
+            border:'2px dashed ' + colors[number],
+            top: (myHeight/2)-100-(number*10) + myTop + 'px',
+            left:(myWidth/2)-100-(number*10) + myLeft +'px'
+          }}
+        ></div>
       }
+
+      const app = document.getElementById('app');
+      ReactDOM.render(<>{
+        [0,1,2,3].map((i)=> localStorage.getItem(i) ? <Square key={i} number={i}/> : null )
+      }</>, app);
     </script>
   </body>
 </html>
