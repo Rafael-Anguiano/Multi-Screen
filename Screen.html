@@ -43,12 +43,6 @@
      }
 
       function Square ({ number=0 }) {
-        React.useEffect(()=>{
-          myTop = Number(localStorage.getItem(`top-${number}`))
-          myLeft = Number(localStorage.getItem(`left-${number}`))
-          myHeight = Number(localStorage.getItem(`height-${number}`))
-          myWidth = Number(localStorage.getItem(`width-${number}`))  
-        },[localStorage])
         let myTop = Number(localStorage.getItem(`top-${number}`))
         let myLeft = Number(localStorage.getItem(`left-${number}`))
         let myHeight = Number(localStorage.getItem(`height-${number}`))
