@@ -27,7 +27,6 @@
       localStorage.setItem(identificator, identificator)
       localStorage.setItem(`width-${identificator}`, window.outerWidth)
       localStorage.setItem(`height-${identificator}`, window.innerHeight)
-      localStorage.setItem(`color-${identificator}`, colors[identificator])
       localStorage.setItem(`top-${identificator}`, window.screenTop)
       localStorage.setItem(`left-${identificator}`, window.screenLeft)
       console.log(localStorage)
@@ -37,7 +36,6 @@
         localStorage.removeItem(identificator)
         localStorage.removeItem(`width-${identificator}`)
         localStorage.removeItem(`height-${identificator}`)
-        localStorage.removeItem(`color-${identificator}`)
         localStorage.removeItem(`top-${identificator}`)
         localStorage.removeItem(`left-${identificator}`)
      }
@@ -55,8 +53,8 @@
             width: 100 + number*20 + 'px',
             height:100 + number*20 + 'px',
             border:'2px dashed ' + colors[number],
-            top: (myHeight/2)-(100+(number*10)) + myTop + 'px',
-            left:(myWidth/2)-(100+(number*10)) + myLeft +'px'
+            top: (myHeight/2)-(100+number*20)/2 + myTop + 'px',
+            left:(myWidth/2)-(100+number*20)/2 + myLeft +'px'
           }}
         ></div>
       }
