@@ -18,14 +18,14 @@
       const urlParams = new URLSearchParams(queryString);
       let identificator = Number(urlParams.get('screen'));
 
-      if(!identificator){
-         for(let i = 0;i<4;i++){
-           if(!localStorage.getItem(i)){
-             location.replace(`Screen.html?screen=${i}`)
-             break;
-           }
-         }
-       }
+      // if(!identificator){
+      //   for(let i = 0;i<4;i++){
+      //     if(!localStorage.getItem(i)){
+      //       location.replace(`Screen.html?screen=${i}`)
+      //       break;
+      //     }
+      //   }
+      // }
 
        localStorage.setItem(identificator, identificator)
        localStorage.setItem(`color-${identificator}`, colors[identificator])
@@ -47,7 +47,6 @@
 
         function Square ({ number=0, seconds=0, onRefresh, myTop, myLeft, myHeight, myWidth}) {
           let myColor = localStorage.getItem(`color-${number}`)
-
           React.useEffect(() => {
             // Refresh logic when needed
             if(number == identificator){
@@ -64,8 +63,8 @@
             width: 100 + number*20 + 'px',
             height:100 + number*20 + 'px',
             border:'2px solid ' + myColor,
-            top: identificator !== number ? (myHeight/2)-(100+number*20)/2 + myTop + 'px' : (myHeight/2)-(100+number*20)/2 + 'px',
-            left: identificator !== number ? (myWidth/2)-(100+number*20)/2 + myLeft +'px' : (myWidth/2)-(100+number*20)/2 +'px',
+            top: identificator !== number ? (myHeight/2)-(100+number*20)/2 -window.screenTop + myTop + 'px' : (myHeight/2)-(100+number*20)/2 + 'px',
+            left: identificator !== number ? (myWidth/2)-(100+number*20)/2 -window.screenLeft+ myLeft +'px' : (myWidth/2)-(100+number*20)/2 +'px',
             transform:`rotate(${seconds%1440}deg)`
           }}
           ></div>
@@ -80,7 +79,7 @@
         const handleRefresh = () => {
           setTimeout(()=>{
             setRefresh(!refresh);
-          },10)
+          },5)
 
         };
         return <>{
