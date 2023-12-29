@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Get Screen Details</title>
+  </head>
+  <body
+    id="mybody"
+    style="max-width: 100vw; max-height: 100vh; background: #050505"
+  >
+    <div id="app"></div>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/jsx">
+      const queryString = window.location.search;
+      const urlParams = new URLSearchParams(queryString);
+      let identificator = Number(urlParams.get("id"));
+      let size = urlParams.get("size") ? Number(urlParams.get("size")) : 100;
+      let hexColor = /[A-Fa-f0-9]{6 | 3}/g;
+      let color = urlParams.get("color")
+        ? "#" + urlParams.get("color")
+        : "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+      urlParams.set("color", color)
+      urlParams.set("size", size)
+
+      localStorage.setItem(identificator, identificator);
+      localStorage.setItem(`color-${identificator}`, color);
+      localStorage.setItem(`width-${identificator}`, window.innerWidth);
+      localStorage.setItem(`height-${identificator}`, window.innerHeight);
+      localStorage.setItem(`top-${identificator}`, window.screenTop);
+      localStorage.setItem(`left-${identificator}`, window.screenLeft);
+      localStorage.setItem(`size-${identificator}`, size);
+      console.log(localStorage);
+
+      addEventListener("beforeunload", () => {
+        localStorage.removeItem(identificator);
+        localStorage.removeItem(`width-${identificator}`);
+        localStorage.removeItem(`color-${identificator}`);
+        localStorage.removeItem(`height-${identificator}`);
+        localStorage.removeItem(`top-${identificator}`);
+        localStorage.removeItem(`left-${identificator}`);
+        localStorage.removeItem(`size-${identificator}`);
+      });
+
+      function Square({
+        number = 0,
+        seconds = 0,
+        onRefresh,
+        myTop,
+        myLeft,
+        myHeight,
+        myWidth,
+        mySize,
+        myColor,
+      }) {
+        React.useEffect(() => {
+          // Refresh logic when needed
+          if (number == identificator) {
+            localStorage.setItem(`width-${identificator}`, window.innerWidth);
+            localStorage.setItem(`height-${identificator}`, window.innerHeight);
+            localStorage.setItem(`top-${identificator}`, window.screenTop);
+            localStorage.setItem(`left-${identificator}`, window.screenLeft);
+            localStorage.setItem(`size-${identificator}`, size);
+          }
+          onRefresh();
+        }, [seconds, onRefresh]);
+
+        return (
+          <div
+            id="square"
+            style={{
+              width: mySize + "px",
+              height: mySize + "px",
+              border:
+                identificator !== number
+                  ? "2px solid " + myColor
+                  : "2px solid" + color,
+              top:
+                identificator !== number
+                  ? myHeight / 2 -
+                    mySize / 2 -
+                    window.screenTop -
+                    1 +
+                    myTop +
+                    "px"
+                  : myHeight / 2 - size / 2 - 1 + "px",
+              left:
+                identificator !== number
+                  ? myWidth / 2 -
+                    mySize / 2 -
+                    window.screenLeft -
+                    1 +
+                    myLeft +
+                    "px"
+                  : myWidth / 2 - size / 2 - 1 + "px",
+              transform: `rotate(${seconds % 1080}deg)`,
+            }}
+          ></div>
+        );
+      }
+
+      function Home() {
+        let seconds = Math.round(Date.now() / 50);
+        const [refresh, setRefresh] = React.useState(false); // Step 1
+        React.useEffect(() => {
+          seconds = Math.round(Date.now() / 50);
+        });
+        const handleRefresh = () => {
+          setTimeout(() => {
+            setRefresh(!refresh);
+          }, 1);
+        };
+        return (
+          <>
+            {[0,1,2,4,5,7,8,9,10,11].map((i) =>
+              i !== identificator && localStorage.getItem(i) ? (
+                <Square
+                  key={i}
+                  number={i}
+                  seconds={seconds}
+                  myTop={Number(localStorage.getItem(`top-${i}`))}
+                  myLeft={Number(localStorage.getItem(`left-${i}`))}
+                  myHeight={Number(localStorage.getItem(`height-${i}`))}
+                  myWidth={Number(localStorage.getItem(`width-${i}`))}
+                  mySize={Number(localStorage.getItem(`size-${i}`))}
+                  myColor={localStorage.getItem(`color-${i}`)}
+                  onRefresh={handleRefresh}
+                />
+              ) : i == identificator ? (
+                <Square
+                  key={i}
+                  number={i}
+                  seconds={seconds}
+                  myTop={window.screenTop}
+                  myLeft={window.screenLeft}
+                  myHeight={window.innerHeight}
+                  myWidth={window.innerWidth}
+                  mySize={size}
+                  myColor={color}
+                  onRefresh={handleRefresh}
+                />
+              ) : null
+            )}
+          </>
+        );
+      }
+
+      const app = document.getElementById("app");
+      ReactDOM.render(<Home />, app);
+    </script>
+    <style>
+      #square {
+        border-radius: 30px;
+        position: fixed;
+      }
+    </style>
+  </body>
+</html>
