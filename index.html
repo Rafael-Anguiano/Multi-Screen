@@ -212,7 +212,7 @@
                   <label onClick={ () => handleTypeToggle() } style={{color:color, border:"2px solid"+ color}} >{capitalize(type)}</label>
                 </div>
                 <div onClick={()=> openSize ? setOpenSize(false) : {} } className={"color"}>
-                  <label for="currColor" style={{color:color, border:"2px solid"+ color}}>Color</label>
+                  <label htmlFor="currColor" style={{color:color, border:"2px solid"+ color}}>Color</label>
                   <input
                   className={"inputColor"}
                   onChange={(e) => handleColor(e.target)}
@@ -223,7 +223,7 @@
                 />
                 </div>
                 <div className={"size"}>
-                  <label onClick={()=>setOpenSize(!openSize)} for="currSize" style={{color:color, border:"2px solid"+ color}}>Size</label>
+                  <label onClick={()=>setOpenSize(!openSize)} htmlFor="currSize" style={{color:color, border:"2px solid"+ color}}>Size</label>
                   {openSize?
                     <input
                     className={"inputSize"}
