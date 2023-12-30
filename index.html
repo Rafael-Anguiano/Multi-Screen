@@ -55,7 +55,6 @@
       localStorage.setItem(`left-${identificator}`, window.screenLeft);
       localStorage.setItem(`size-${identificator}`, size);
       localStorage.setItem(`type-${identificator}`, type);
-      console.log(localStorage);
 
       addEventListener("beforeunload", () => {
         localStorage.removeItem(identificator);
@@ -137,9 +136,12 @@
         function handleTypeToggle ()  {
           if(type == "square"){
             type = "circle"
-          }
-          if(type == "circle"){
+            urlParams.set("type", type)
+            localStorage.setItem(`type-${identificator}`, type);
+          }else{
             type = "square"
+            urlParams.set("type", type)
+            localStorage.setItem(`type-${identificator}`, type);
           }
         }
 
@@ -164,9 +166,7 @@
             'location=0,directories=yes,titlebar=yes,toolbar=yes,location=yes,status=yes,menubar=yes,scrollbars=yes,resizable=yes,width=400,height=350'
           );
         }
-        const mystyle = {
-          color: "white"
-        };
+
         return (
           <>
             {values.map((i) =>
@@ -209,7 +209,7 @@
               {isOpen ?
                 <>
                 <div className={"type"}>
-                  <label onClick={handleTypeToggle} style={{color:color, border:"2px solid"+ color}} >{capitalize(type)}</label>
+                  <label onClick={ () => handleTypeToggle() } style={{color:color, border:"2px solid"+ color}} >{capitalize(type)}</label>
                 </div>
                 <div onClick={()=> openSize ? setOpenSize(false) : {} } className={"color"}>
                   <label for="currColor" style={{color:color, border:"2px solid"+ color}}>Color</label>
