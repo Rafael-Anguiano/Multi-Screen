@@ -15,13 +15,37 @@
       const queryString = window.location.search;
       const urlParams = new URLSearchParams(queryString);
       let identificator = Number(urlParams.get("id"));
+      let type = urlParams.get("type") ? urlParams.get("type") : "square" ;
       let size = urlParams.get("size") ? Number(urlParams.get("size")) : 100;
       let hexColor = /[A-Fa-f0-9]{6 | 3}/g;
       let color = urlParams.get("color")
         ? "#" + urlParams.get("color")
-        : "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
-      urlParams.set("color", color)
-      urlParams.set("size", size)
+        : "#" + generateRandomColor();
+
+
+      function generateRandomColor() {
+        return Math.floor(Math.random() * 16777215)
+          .toString(16)
+          .padStart(6, "0");
+      }
+
+      function capitalize (str) {
+        return str.replace(str[0], str[0].toUpperCase())
+      }
+
+      function fillArray(){
+        let arr = []
+        for(let i=0;i<300;i++){
+          arr.push(i)
+        }
+        return arr
+      }
+
+      let values = fillArray()
+
+      function getRandomInt(max) {
+        return Math.floor(Math.random() * max);
+      }
 
       localStorage.setItem(identificator, identificator);
       localStorage.setItem(`color-${identificator}`, color);
@@ -30,6 +54,7 @@
       localStorage.setItem(`top-${identificator}`, window.screenTop);
       localStorage.setItem(`left-${identificator}`, window.screenLeft);
       localStorage.setItem(`size-${identificator}`, size);
+      localStorage.setItem(`type-${identificator}`, type);
       console.log(localStorage);
 
       addEventListener("beforeunload", () => {
@@ -40,19 +65,10 @@
         localStorage.removeItem(`top-${identificator}`);
         localStorage.removeItem(`left-${identificator}`);
         localStorage.removeItem(`size-${identificator}`);
+        localStorage.removeItem(`type-${identificator}`);
       });
 
-      function Square({
-        number = 0,
-        seconds = 0,
-        onRefresh,
-        myTop,
-        myLeft,
-        myHeight,
-        myWidth,
-        mySize,
-        myColor,
-      }) {
+      function Square({ number = 0, seconds = 0, item, onRefresh }) {
         React.useEffect(() => {
           // Refresh logic when needed
           if (number == identificator) {
@@ -61,6 +77,7 @@
             localStorage.setItem(`top-${identificator}`, window.screenTop);
             localStorage.setItem(`left-${identificator}`, window.screenLeft);
             localStorage.setItem(`size-${identificator}`, size);
+            localStorage.setItem(`type-${identificator}`, type);
           }
           onRefresh();
         }, [seconds, onRefresh]);
@@ -69,30 +86,31 @@
           <div
             id="square"
             style={{
-              width: mySize + "px",
-              height: mySize + "px",
+              borderRadius: item.myType == "circle" ? "50%" : item.mySize*.3+"px",
+              width: item.mySize + "px",
+              height: item.mySize + "px",
               border:
                 identificator !== number
-                  ? "2px solid " + myColor
+                  ? "2px solid " + item.myColor
                   : "2px solid" + color,
               top:
                 identificator !== number
-                  ? myHeight / 2 -
-                    mySize / 2 -
+                  ? item.myHeight / 2 -
+                    item.mySize / 2 -
                     window.screenTop -
                     1 +
-                    myTop +
+                    item.myTop +
                     "px"
-                  : myHeight / 2 - size / 2 - 1 + "px",
+                  : item.myHeight / 2 - size / 2 - 1 + "px",
               left:
                 identificator !== number
-                  ? myWidth / 2 -
-                    mySize / 2 -
+                  ? item.myWidth / 2 -
+                    item.mySize / 2 -
                     window.screenLeft -
                     1 +
-                    myLeft +
+                    item.myLeft +
                     "px"
-                  : myWidth / 2 - size / 2 - 1 + "px",
+                  : item.myWidth / 2 - size / 2 - 1 + "px",
               transform: `rotate(${seconds % 1080}deg)`,
             }}
           ></div>
@@ -100,30 +118,72 @@
       }
 
       function Home() {
+        let [isOpen, setIsOpen] = React.useState(false);
+        let [newColor, setNewColor] = React.useState("#"+generateRandomColor());
+        let [openSize, setOpenSize] = React.useState(false);
         let seconds = Math.round(Date.now() / 50);
-        const [refresh, setRefresh] = React.useState(false); // Step 1
+        const [refresh, setRefresh] = React.useState(false);
+
         React.useEffect(() => {
           seconds = Math.round(Date.now() / 50);
-        });
+        },[seconds]);
+
         const handleRefresh = () => {
           setTimeout(() => {
             setRefresh(!refresh);
-          }, 1);
+          }, 0.1);
+        };
+
+        function handleTypeToggle ()  {
+          if(type == "square"){
+            type = "circle"
+          }
+          if(type == "circle"){
+            type = "square"
+          }
+        }
+
+        function handleSize(t) {
+          size = Number(t.value);
+          urlParams.set("size", size)
+          localStorage.setItem(`size-${identificator}`, size);
+        }
+
+        function handleColor(t) {
+          color = t.value;
+          urlParams.set("color", color)
+          localStorage.setItem(`color-${identificator}`, color);
+        }
+
+        function handleNew() {
+          window.open(
+            `${window.location.origin}?id=${getRandomInt(values.length-1)+1}&type=${type}&size=${size + 10}&color=${
+              color
+            }`,
+            "_blank",
+            'location=0,directories=yes,titlebar=yes,toolbar=yes,location=yes,status=yes,menubar=yes,scrollbars=yes,resizable=yes,width=400,height=350'
+          );
+        }
+        const mystyle = {
+          color: "white"
         };
         return (
           <>
-            {[0,1,2,4,5,7,8,9,10,11].map((i) =>
+            {values.map((i) =>
               i !== identificator && localStorage.getItem(i) ? (
                 <Square
                   key={i}
                   number={i}
                   seconds={seconds}
-                  myTop={Number(localStorage.getItem(`top-${i}`))}
-                  myLeft={Number(localStorage.getItem(`left-${i}`))}
-                  myHeight={Number(localStorage.getItem(`height-${i}`))}
-                  myWidth={Number(localStorage.getItem(`width-${i}`))}
-                  mySize={Number(localStorage.getItem(`size-${i}`))}
-                  myColor={localStorage.getItem(`color-${i}`)}
+                  item={{
+                    myTop: Number(localStorage.getItem(`top-${i}`)),
+                    myLeft: Number(localStorage.getItem(`left-${i}`)),
+                    myHeight: Number(localStorage.getItem(`height-${i}`)),
+                    myWidth: Number(localStorage.getItem(`width-${i}`)),
+                    mySize: Number(localStorage.getItem(`size-${i}`)),
+                    myColor: localStorage.getItem(`color-${i}`),
+                    myType: localStorage.getItem(`type-${i}`),
+                  }}
                   onRefresh={handleRefresh}
                 />
               ) : i == identificator ? (
@@ -131,27 +191,171 @@
                   key={i}
                   number={i}
                   seconds={seconds}
-                  myTop={window.screenTop}
-                  myLeft={window.screenLeft}
-                  myHeight={window.innerHeight}
-                  myWidth={window.innerWidth}
-                  mySize={size}
-                  myColor={color}
+                  item={{
+                    myTop: window.screenTop,
+                    myLeft: window.screenLeft,
+                    myHeight: window.innerHeight,
+                    myWidth: window.innerWidth,
+                    mySize: size,
+                    myColor: color,
+                    myType: type,
+                  }}
                   onRefresh={handleRefresh}
                 />
               ) : null
             )}
-          </>
-        );
-      }
-
-      const app = document.getElementById("app");
-      ReactDOM.render(<Home />, app);
+            <div id="currWindow">
+              <button className={"buttonSquare"} onClick={()=> setIsOpen(!isOpen) } style={{border:"2px solid"+ color, color:color, transform:`rotate(${seconds}deg)`}}></button>
+              {isOpen ?
+                <>
+                <div className={"type"}>
+                  <label onClick={handleTypeToggle} style={{color:color, border:"2px solid"+ color}} >{capitalize(type)}</label>
+                </div>
+                <div onClick={()=> openSize ? setOpenSize(false) : {} } className={"color"}>
+                  <label for="currColor" style={{color:color, border:"2px solid"+ color}}>Color</label>
+                  <input
+                  className={"inputColor"}
+                  onChange={(e) => handleColor(e.target)}
+                  type="color"
+                  id="currColor"
+                  name="currColor"
+                  value={color}
+                />
+                </div>
+                <div className={"size"}>
+                  <label onClick={()=>setOpenSize(!openSize)} for="currSize" style={{color:color, border:"2px solid"+ color}}>Size</label>
+                  {openSize?
+                    <input
+                    className={"inputSize"}
+                    onChange={(e) => handleSize(e.target)}
+                    type="range"
+                    value={size}
+                    id="currSize"
+                    name="currSize"
+                    min="0" max="500"
+                    />
+                  :null}
+                </div>
+                </>
+                :null}
+            </div>
+            <div id="newWindow">
+              <button className={"buttonSquare"} onClick={()=> handleNew()} style={{border:"2px solid"+ newColor, color:newColor, transform:`rotate(${seconds}deg)`}}>+</button>
+            </div>
+            </>
+            );
+          }
+          const app = document.getElementById("app");
+          ReactDOM.render(<Home />, app);
     </script>
     <style>
+      * {
+        font-family: "";
+      }
       #square {
-        border-radius: 30px;
         position: fixed;
+      }
+      button,
+      .buttonSquare {
+        cursor: pointer;
+        border-radius: 50%;
+        background: transparent;
+        box-shadow: 0 0 10px black;
+        border: none;
+        padding: 10px;
+        height: 40px;
+        width: 40px;
+      }
+      .buttonSquare::before {
+        content: "";
+        position: absolute;
+        width: calc(50%);
+        height: calc(50%);
+        top: calc(25% - 1px);
+        left: calc(25% - 1px);
+        border-radius: 5px;
+        color: inherit;
+        border: 1px solid;
+      }
+      label {
+        background: transparent;
+        cursor: pointer;
+        padding: 10px;
+        border-radius: 20px;
+        height: 40px;
+        box-shadow: 0 0 10px black;
+      }
+      .inputColor {
+        visibility: hidden;
+        border: 2px solid;
+        padding: 10px;
+        position: absolute;
+        margin-top: 30px;
+      }
+      #currWindow {
+        display: flex;
+        justify-items: flex-start;
+        align-items: center;
+        position: fixed;
+        top: 30px;
+        left: 30px;
+        gap: 10px;
+      }
+      #newWindow {
+        display: flex;
+        justify-items: flex-start;
+        align-items: center;
+        position: fixed;
+        bottom: 30px;
+        left: 30px;
+        gap: 10px;
+      }
+      .type {
+        opacity: 0;
+        display: flex;
+        flex-direction: column;
+        height: 40px;
+        justify-content: center;
+        align-items: center;
+        animation: slideIn 0.25s ease-out 0s forwards;
+      }
+      .color {
+        display: flex;
+        flex-direction: column;
+        height: 40px;
+        justify-content: center;
+        align-items: center;
+        animation: slideIn 0.5s ease-out;
+      }
+      .size {
+        opacity: 0;
+        display: flex;
+        flex-direction: column;
+        height: 40px;
+        justify-content: center;
+        align-items: center;
+        animation: slideIn 0.5s ease-out 0.25s forwards;
+      }
+
+      .inputSize {
+        position: absolute;
+        padding: 10px;
+        margin-top: 150%;
+        cursor: pointer;
+      }
+
+      @keyframes slideIn {
+        0% {
+          transform: translateX(-40px);
+          opacity: 0;
+        }
+        40% {
+          opacity: 0;
+        }
+        100% {
+          transform: translate(0);
+          opacity: 1;
+        }
       }
     </style>
   </body>
