@@ -25,61 +25,86 @@
     <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script type="text/jsx">
-      const queryString = window.location.search;
-      const urlParams = new URLSearchParams(queryString);
-      let identificator = urlParams.get("id") ? Number(urlParams.get("id")) : 1;
-      let myType = urlParams.get("type") ? urlParams.get("type") : "square";
-      let mySize = urlParams.get("size") ? Number(urlParams.get("size")) : 100;
-      let hexColor = /[A-Fa-f0-9]{6 | 3}/g;
-      let myColor = urlParams.get("color")
-        ? "#" + urlParams.get("color")
-        : "#" + generateRandomColor();
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        let identificator = urlParams.get("id") ? Number(urlParams.get("id")) : 1;
 
-      function generateRandomColor() {
-        return Math.floor(Math.random() * 16777215)
-          .toString(16)
-          .padStart(6, "0");
-      }
-
-      function capitalize(str) {
-        return str.replace(str[0], str[0].toUpperCase());
-      }
-
-      function fillArray() {
-        let arr = [];
-        for (let i = 0; i < 300; i++) {
-          arr.push(i);
+      // Setting up localStorage
+        if(identificator == 1 ){
+          localStorage.clear()
         }
-        return arr;
-      }
 
+      // Getting properties in case them exist.
+        let myType = urlParams.get("type") ? urlParams.get("type") : "square";
+        let mySize = urlParams.get("size") ? Number(urlParams.get("size")) : 100;
+        let hexColor = /[A-Fa-f0-9]{6 | 3}/g;
+        let myColor = urlParams.get("color")
+          ? "#" + urlParams.get("color")
+          : "#" + generateRandomColor();
+
+      // lib
+        function generateRandomColor() {
+          return Math.floor(Math.random() * 16777215)
+            .toString(16)
+            .padStart(6, "0");
+        }
+
+        function capitalize(str) {
+          return str.replace(str[0], str[0].toUpperCase());
+        }
+
+        function fillArray() {
+          let arr = [];
+          for (let i = 0; i < 300; i++) {
+            arr.push(i);
+          }
+          return arr;
+        }
+
+        function getRandomInt(max) {
+          return Math.floor(Math.random() * max);
+        }
+
+      // Creating localStorage for current window figure
+        let object = {
+          color: myColor,
+          width: window.innerWidth,
+          height: window.innerHeight,
+          top: window.screenTop,
+          left: window.screenLeft,
+          size: mySize,
+          type: myType,
+        };
+
+        localStorage.setItem(identificator, JSON.stringify(object));
+
+      // Erasing localStorage from figures that are deleted
+        addEventListener("beforeunload", () => {
+          localStorage.removeItem(identificator);
+        });
+
+      // Creating iterable array
       let values = fillArray();
 
-      function getRandomInt(max) {
-        return Math.floor(Math.random() * max);
-      }
+      // Square Component
+        function Square({ number = 0, seconds = 0, onRefresh }) {
+          let item =
+            number != identificator
+              ? JSON.parse(localStorage.getItem(number))
+              : {
+                  height: window.innerHeight,
+                  width: window.innerWidth,
+                  left: window.screenLeft,
+                  top: window.screenTop,
+                  color: myColor,
+                  type: myType,
+                  size: mySize,
+                };
 
-      let object = {
-        color: myColor,
-        width: window.innerWidth,
-        height: window.innerHeight,
-        top: window.screenTop,
-        left: window.screenLeft,
-        size: mySize,
-        type: myType,
-      };
-
-      localStorage.setItem(identificator, JSON.stringify(object));
-
-      addEventListener("beforeunload", () => {
-        localStorage.removeItem(identificator);
-      });
-
-      function Square({ number = 0, seconds = 0, onRefresh }) {
-        let item =
-          number != identificator
-            ? JSON.parse(localStorage.getItem(number))
-            : {
+          React.useEffect(() => {
+            // Refresh logic when needed
+            if (number == identificator) {
+              let newObject = {
                 height: window.innerHeight,
                 width: window.innerWidth,
                 left: window.screenLeft,
@@ -88,212 +113,200 @@
                 type: myType,
                 size: mySize,
               };
+              localStorage.setItem(identificator, JSON.stringify(newObject));
+            }
+            onRefresh();
+          }, [seconds, onRefresh]);
 
-        React.useEffect(() => {
-          // Refresh logic when needed
-          if (number == identificator) {
-            let newObject = {
-              height: window.innerHeight,
-              width: window.innerWidth,
-              left: window.screenLeft,
-              top: window.screenTop,
-              color: myColor,
-              type: myType,
-              size: mySize,
-            };
-            localStorage.setItem(identificator, JSON.stringify(newObject));
+          return (
+            <div
+              id="square"
+              style={{
+                borderRadius:
+                  item.type == "circle" ? "50%" : item.size * 0.3 + "px",
+                width: item.size + "px",
+                height: item.size + "px",
+                border:
+                  identificator !== number
+                    ? "2px solid " + item.color
+                    : "2px solid " + myColor,
+                top:
+                  identificator !== number
+                    ? item.height / 2 -
+                      item.size / 2 -
+                      window.screenTop -
+                      1 +
+                      item.top +
+                      "px"
+                    : item.height / 2 - mySize / 2 - 1 + "px",
+                left:
+                  identificator !== number
+                    ? item.width / 2 -
+                      item.size / 2 -
+                      window.screenLeft -
+                      1 +
+                      item.left +
+                      "px"
+                    : item.width / 2 - mySize / 2 - 1 + "px",
+                transform: `rotate(${seconds % 1080}deg)`,
+              }}
+            ></div>
+          );
+        }
+
+      // Home Component
+        function Home() {
+          let [isOpen, setIsOpen] = React.useState(false);
+          let [newColor, setNewColor] = React.useState(
+            "#" + generateRandomColor()
+          );
+          let [openSize, setOpenSize] = React.useState(false);
+          let seconds = Math.round(Date.now() / 50);
+          const [refresh, setRefresh] = React.useState(false);
+
+          React.useEffect(() => {
+            seconds = Math.round(Date.now() / 50);
+          }, [seconds]);
+
+          const handleRefresh = () => {
+            setTimeout(() => {
+              setRefresh(!refresh);
+            }, 0.1);
+          };
+
+          function handleTypeToggle() {
+            myType = myType == "square" ? "circle" : "square";
+            urlParams.set("type", myType);
+            let thisObject = JSON.parse(localStorage.getItem(identificator));
+            localStorage.setItem(
+              identificator,
+              JSON.stringify({ ...thisObject, type: myType })
+            );
           }
-          onRefresh();
-        }, [seconds, onRefresh]);
 
-        return (
-          <div
-            id="square"
-            style={{
-              borderRadius:
-                item.type == "circle" ? "50%" : item.size * 0.3 + "px",
-              width: item.size + "px",
-              height: item.size + "px",
-              border:
-                identificator !== number
-                  ? "2px solid " + item.color
-                  : "2px solid " + myColor,
-              top:
-                identificator !== number
-                  ? item.height / 2 -
-                    item.size / 2 -
-                    window.screenTop -
-                    1 +
-                    item.top +
-                    "px"
-                  : item.height / 2 - mySize / 2 - 1 + "px",
-              left:
-                identificator !== number
-                  ? item.width / 2 -
-                    item.size / 2 -
-                    window.screenLeft -
-                    1 +
-                    item.left +
-                    "px"
-                  : item.width / 2 - mySize / 2 - 1 + "px",
-              transform: `rotate(${seconds % 1080}deg)`,
-            }}
-          ></div>
-        );
-      }
+          function handleSize(t) {
+            mySize = Number(t.value);
+            urlParams.set("size", mySize);
+            let thisObject = JSON.parse(localStorage.getItem(identificator));
+            localStorage.setItem(
+              identificator,
+              JSON.stringify({ ...thisObject, size: mySize })
+            );
+          }
 
-      function Home() {
-        let [isOpen, setIsOpen] = React.useState(false);
-        let [newColor, setNewColor] = React.useState(
-          "#" + generateRandomColor()
-        );
-        let [openSize, setOpenSize] = React.useState(false);
-        let seconds = Math.round(Date.now() / 50);
-        const [refresh, setRefresh] = React.useState(false);
+          function handleColor(t) {
+            myColor = t.value;
+            urlParams.set("color", myColor.slice(-6));
+            let thisObject = JSON.parse(localStorage.getItem(identificator));
+            localStorage.setItem(
+              identificator,
+              JSON.stringify({ ...thisObject, color: myColor })
+            );
+          }
 
-        React.useEffect(() => {
-          seconds = Math.round(Date.now() / 50);
-        }, [seconds]);
+          function handleNew() {
+            window.open(
+              `${window.location.origin}?id=${
+                getRandomInt(values.length - 1) + 1
+              }&type=${myType}&size=${mySize + 10}&color=${newColor.slice(-6)}`,
+              "_blank",
+              "location=0,directories=yes,titlebar=yes,toolbar=yes,location=yes,status=yes,menubar=yes,scrollbars=yes,resizable=yes,width=400,height=350"
+            );
+          }
 
-        const handleRefresh = () => {
-          setTimeout(() => {
-            setRefresh(!refresh);
-          }, 0.1);
-        };
-
-        function handleTypeToggle() {
-          myType = myType == "square" ? "circle" : "square";
-          urlParams.set("type", myType);
-          let thisObject = JSON.parse(localStorage.getItem(identificator));
-          localStorage.setItem(
-            identificator,
-            JSON.stringify({ ...thisObject, type: myType })
-          );
-        }
-
-        function handleSize(t) {
-          mySize = Number(t.value);
-          urlParams.set("size", mySize);
-          let thisObject = JSON.parse(localStorage.getItem(identificator));
-          localStorage.setItem(
-            identificator,
-            JSON.stringify({ ...thisObject, size: mySize })
-          );
-        }
-
-        function handleColor(t) {
-          myColor = t.value;
-          urlParams.set("color", myColor.slice(-6));
-          let thisObject = JSON.parse(localStorage.getItem(identificator));
-          localStorage.setItem(
-            identificator,
-            JSON.stringify({ ...thisObject, color: myColor })
-          );
-        }
-
-        function handleNew() {
-          window.open(
-            `${window.location.origin}?id=${
-              getRandomInt(values.length - 1) + 1
-            }&type=${myType}&size=${mySize + 10}&color=${newColor.slice(-6)}`,
-            "_blank",
-            "location=0,directories=yes,titlebar=yes,toolbar=yes,location=yes,status=yes,menubar=yes,scrollbars=yes,resizable=yes,width=400,height=350"
-          );
-        }
-
-        return (
-          <>
-            {values.map((i) =>
-              localStorage.getItem(i) ? (
-                <Square
-                  key={i}
-                  number={i}
-                  seconds={seconds}
-                  onRefresh={handleRefresh}
-                />
-              ) : null
-            )}
-            <div id="currWindow">
-              <button
-                className={"buttonSquare"}
-                onClick={() => setIsOpen(!isOpen)}
-                style={{
-                  border: "2px solid " + myColor,
-                  color: myColor,
-                  transform: `rotate(${seconds}deg)`,
-                }}
-              ></button>
-              {isOpen ? (
-                <>
-                  <div className={"type"}>
-                    <label
-                      onClick={() => handleTypeToggle()}
-                      style={{ color: myColor, border: "2px solid " + myColor }}
+          return (
+            <>
+              {values.map((i) =>
+                localStorage.getItem(i) ? (
+                  <Square
+                    key={i}
+                    number={i}
+                    seconds={seconds}
+                    onRefresh={handleRefresh}
+                  />
+                ) : null
+              )}
+              <div id="currWindow">
+                <button
+                  className={"buttonSquare"}
+                  onClick={() => setIsOpen(!isOpen)}
+                  style={{
+                    border: "2px solid " + myColor,
+                    color: myColor,
+                    transform: `rotate(${seconds}deg)`,
+                  }}
+                ></button>
+                {isOpen ? (
+                  <>
+                    <div className={"type"}>
+                      <label
+                        onClick={() => handleTypeToggle()}
+                        style={{ color: myColor, border: "2px solid " + myColor }}
+                      >
+                        {capitalize(myType)}
+                      </label>
+                    </div>
+                    <div
+                      onClick={() => (openSize ? setOpenSize(false) : {})}
+                      className={"color"}
                     >
-                      {capitalize(myType)}
-                    </label>
-                  </div>
-                  <div
-                    onClick={() => (openSize ? setOpenSize(false) : {})}
-                    className={"color"}
-                  >
-                    <label
-                      htmlFor="currColor"
-                      style={{ color: myColor, border: "2px solid " + myColor }}
-                    >
-                      Color
-                    </label>
-                    <input
-                      className={"inputColor"}
-                      onChange={(e) => handleColor(e.target)}
-                      type="color"
-                      id="currColor"
-                      name="currColor"
-                      value={myColor}
-                    />
-                  </div>
-                  <div className={"size"}>
-                    <label
-                      onClick={() => setOpenSize(!openSize)}
-                      htmlFor="currSize"
-                      style={{ color: myColor, border: "2px solid " + myColor }}
-                    >
-                      Size
-                    </label>
-                    {openSize ? (
+                      <label
+                        htmlFor="currColor"
+                        style={{ color: myColor, border: "2px solid " + myColor }}
+                      >
+                        Color
+                      </label>
                       <input
-                        className={"inputSize"}
-                        onChange={(e) => handleSize(e.target)}
-                        type="range"
-                        value={mySize}
-                        id="currSize"
-                        name="currSize"
-                        min="0"
-                        max="500"
+                        className={"inputColor"}
+                        onChange={(e) => handleColor(e.target)}
+                        type="color"
+                        id="currColor"
+                        name="currColor"
+                        value={myColor}
                       />
-                    ) : null}
-                  </div>
-                </>
-              ) : null}
-            </div>
-            <div id="newWindow">
-              <button
-                className={"buttonSquare"}
-                onClick={() => handleNew()}
-                style={{
-                  border: "2px solid " + newColor,
-                  color: newColor,
-                  transform: `rotate(${seconds}deg)`,
-                }}
-              >
-                +
-              </button>
-            </div>
-          </>
-        );
-      }
-      const app = document.getElementById("app");
-      ReactDOM.render(<Home />, app);
+                    </div>
+                    <div className={"size"}>
+                      <label
+                        onClick={() => setOpenSize(!openSize)}
+                        htmlFor="currSize"
+                        style={{ color: myColor, border: "2px solid " + myColor }}
+                      >
+                        Size
+                      </label>
+                      {openSize ? (
+                        <input
+                          className={"inputSize"}
+                          onChange={(e) => handleSize(e.target)}
+                          type="range"
+                          value={mySize}
+                          id="currSize"
+                          name="currSize"
+                          min="0"
+                          max="500"
+                        />
+                      ) : null}
+                    </div>
+                  </>
+                ) : null}
+              </div>
+              <div id="newWindow">
+                <button
+                  className={"buttonSquare"}
+                  onClick={() => handleNew()}
+                  style={{
+                    border: "2px solid " + newColor,
+                    color: newColor,
+                    transform: `rotate(${seconds}deg)`,
+                  }}
+                >
+                  +
+                </button>
+              </div>
+            </>
+          );
+        }
+        const app = document.getElementById("app");
+        ReactDOM.render(<Home />, app);
     </script>
     <style>
       * {
